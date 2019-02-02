@@ -25,6 +25,8 @@ package team492;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
+import edu.wpi.first.wpilibj.SPI;
+import frclib.FrcAHRSGyro;
 import frclib.FrcCANSparkMax;
 import frclib.FrcJoystick;
 import frclib.FrcRobotBase;
@@ -56,6 +58,8 @@ public class Robot extends FrcRobotBase
     public CANSparkMax lrRawWheel = null;
     public CANSparkMax rfRawWheel = null;
     public CANSparkMax rrRawWheel = null;
+
+    public FrcAHRSGyro gyro = null;
     //
     // DriveBase subsystem.
     //
@@ -104,6 +108,9 @@ public class Robot extends FrcRobotBase
             leftRearWheel = new FrcCANSparkMax("LeftRearWheel", RobotInfo.CANID_LEFTREARWHEEL, true);
             rightFrontWheel = new FrcCANSparkMax("RightFrontWheel", RobotInfo.CANID_RIGHTFRONTWHEEL, true);
             rightRearWheel = new FrcCANSparkMax("RightRearWheel", RobotInfo.CANID_RIGHTREARWHEEL, true);
+
+            gyro = new FrcAHRSGyro("Gyro", SPI.Port.kMXP);
+
             //
             // Initialize each drive motor controller.
             //
@@ -120,7 +127,8 @@ public class Robot extends FrcRobotBase
             //
             // Initialize DriveBase subsystem.
             //
-            driveBase = new TrcMecanumDriveBase(leftFrontWheel, leftRearWheel, rightFrontWheel, rightRearWheel);
+            driveBase = new TrcMecanumDriveBase(leftFrontWheel, leftRearWheel, rightFrontWheel, rightRearWheel, gyro);
+            driveBase.setPositionScales(0.001, 0.001, 0.01);
             driveBase.setOdometryEnabled(true);
         }
         //
