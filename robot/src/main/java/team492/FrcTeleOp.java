@@ -35,10 +35,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
 
     protected Robot robot;
 
-    private boolean slowDriveOverride = false;
     private DriveMode driveMode = DriveMode.MECANUM_MODE;
-    private boolean driveInverted = false;
-    private boolean gyroAssist = false;
 
     public FrcTeleOp(Robot robot)
     {
@@ -73,9 +70,6 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     @Override
     public void runPeriodic(double elapsedTime)
     {
-        double elevatorPower = robot.operatorStick.getYWithDeadband(true);
-        robot.elevator.setPower(elevatorPower, false); // For debugging purposes, leave it false.
-
         double leftDriveX = robot.leftDriveStick.getXWithDeadband(true);
         double leftDriveY = robot.leftDriveStick.getYWithDeadband(true);
         double rightDriveY = robot.rightDriveStick.getYWithDeadband(true);
@@ -87,46 +81,44 @@ public class FrcTeleOp implements TrcRobot.RobotMode
             case TANK_MODE:
                 double leftPower = leftDriveY;
                 double rightPower = rightDriveY;
-                if (slowDriveOverride)
+                if (Robot.USE_RAW)
                 {
-                    leftPower /= RobotInfo.DRIVE_SLOW_YSCALE;
-                    rightPower /= RobotInfo.DRIVE_SLOW_YSCALE;
+                    robot.lfRawWheel.set(leftPower);
+                    robot.lrRawWheel.set(leftPower);
+                    robot.rfRawWheel.set(rightPower);
+                    robot.rrRawWheel.set(rightPower);
                 }
-                robot.driveBase.tankDrive(leftPower, rightPower, driveInverted);
+                else
+                {
+                    robot.driveBase.tankDrive(leftPower, rightPower);
+                }
                 break;
 
             case ARCADE_MODE:
                 double drivePower = rightDriveY;
                 double turnPower = robot.rightDriveStick.getTwistWithDeadband(true);
-                if (slowDriveOverride)
+                if (robot.USE_RAW)
                 {
-                    drivePower /= RobotInfo.DRIVE_SLOW_YSCALE;
-                    turnPower /= RobotInfo.DRIVE_SLOW_TURNSCALE;
+                    leftPower = drivePower + turnPower;
+                    rightPower = drivePower - turnPower;
+
+                    robot.lfRawWheel.set(leftPower);
+                    robot.lrRawWheel.set(leftPower);
+                    robot.rfRawWheel.set(rightPower);
+                    robot.rrRawWheel.set(rightPower);
                 }
-                robot.driveBase.arcadeDrive(drivePower, turnPower, driveInverted);
+                else
+                {
+                    robot.driveBase.arcadeDrive(drivePower, turnPower);
+                }
                 break;
 
             case MECANUM_MODE:
                 double x = leftDriveX;
                 double y = rightDriveY;
                 double rot = robot.rightDriveStick.getTwistWithDeadband(true);
-                if (slowDriveOverride)
-                {
-                    x /= RobotInfo.DRIVE_SLOW_XSCALE;
-                    y /= RobotInfo.DRIVE_SLOW_YSCALE;
-                    rot /= RobotInfo.DRIVE_SLOW_TURNSCALE;
-                }
-                robot.driveBase.holonomicDrive(x, y, rot, driveInverted);
+                robot.driveBase.holonomicDrive(x, y, rot);
                 break;
-        }
-
-        robot.updateDashboard(RunMode.TELEOP_MODE);
-        robot.announceSafety();
-
-        if (robot.pixy != null && robot.pixy.isEnabled())
-        {
-            // Force update of LEDs
-            robot.pixy.getTargetInfo();
         }
     } // runPeriodic
 
@@ -141,8 +133,6 @@ public class FrcTeleOp implements TrcRobot.RobotMode
 
     public void leftDriveStickButtonEvent(int button, boolean pressed)
     {
-        robot.dashboard.displayPrintf(8, " LeftDriveStick: button=0x%04x %s", button, pressed? "pressed": "released");
-
         switch (button)
         {
             case FrcJoystick.LOGITECH_TRIGGER:
@@ -185,12 +175,9 @@ public class FrcTeleOp implements TrcRobot.RobotMode
 
     public void rightDriveStickButtonEvent(int button, boolean pressed)
     {
-        robot.dashboard.displayPrintf(8, "RightDriveStick: button=0x%04x %s", button, pressed? "pressed": "released");
-
         switch (button)
         {
             case FrcJoystick.SIDEWINDER_TRIGGER:
-                slowDriveOverride = pressed;
                 break;
 
             case FrcJoystick.SIDEWINDER_BUTTON2:
@@ -203,19 +190,6 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcJoystick.SIDEWINDER_BUTTON5:
-                if (pressed)
-                {
-                    gyroAssist = !gyroAssist;
-                    if (gyroAssist)
-                    {
-                        robot.driveBase.enableGyroAssist(
-                            RobotInfo.DRIVE_MAX_ROTATION_RATE, RobotInfo.DRIVE_GYRO_ASSIST_KP);
-                    }
-                    else
-                    {
-                        robot.driveBase.disableGyroAssist();
-                    }
-                }
                 break;
 
             case FrcJoystick.SIDEWINDER_BUTTON6:
@@ -234,19 +208,15 @@ public class FrcTeleOp implements TrcRobot.RobotMode
 
     public void operatorStickButtonEvent(int button, boolean pressed)
     {
-        robot.dashboard.displayPrintf(8, "  OperatorStick: button=0x%04x %s", button, pressed? "pressed": "released");
-
         switch (button)
         {
             case FrcJoystick.LOGITECH_TRIGGER:
-                robot.pickup.setPickupPower(pressed ? 0.5 : 0.0);
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON2:
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON3:
-                robot.pickup.setPickupPower(pressed ? -0.5 : 0.0);
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON4:
@@ -256,11 +226,9 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON6:
-                robot.pickup.setPitchPower(pressed ? -0.3 : 0.0, false);
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON7:
-                robot.pickup.setPitchPower(pressed ? 0.6 : 0.0, false);
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON8:
