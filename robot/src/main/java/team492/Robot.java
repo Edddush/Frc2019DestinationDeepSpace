@@ -229,12 +229,12 @@ public class Robot extends FrcRobotBase
         //
         leftFrontWheel.setInverted(false);
         leftRearWheel.setInverted(false);
-        rightFrontWheel.setInverted(true);
+        //rightFrontWheel.setInverted(true);
         rightRearWheel.setInverted(true);
 
         leftFrontWheel.setPositionSensorInverted(false);
         leftRearWheel.setPositionSensorInverted(false);
-        rightFrontWheel.setPositionSensorInverted(false);
+        //rightFrontWheel.setPositionSensorInverted(false);
         rightRearWheel.setPositionSensorInverted(false);
 
         //

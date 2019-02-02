@@ -439,6 +439,11 @@ public class FrcCANSparkMax extends TrcMotor
         zeroPosition = getMotorPosition();
     }   //resetPosition
 
+    public int getDeviceID()
+    {
+        return motor.getDeviceId();
+    }
+
     /**
      * This method resets the motor position sensor, typically an encoder. This method emulates a reset for a
      * potentiometer.
