@@ -60,6 +60,8 @@ public class FrcTeleOp implements TrcRobot.RobotMode
 
         robot.operatorStick.setButtonHandler(this::operatorStickButtonEvent);
         robot.operatorStick.setYInverted(false);
+
+        robot.driveBase.resetOdometry();
     } // startMode
 
     @Override
@@ -73,6 +75,10 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         double leftDriveX = robot.leftDriveStick.getXWithDeadband(true);
         double leftDriveY = robot.leftDriveStick.getYWithDeadband(true);
         double rightDriveY = robot.rightDriveStick.getYWithDeadband(true);
+
+        robot.driveBase.getXPosition();
+        robot.driveBase.getYPosition();
+        robot.driveBase.getHeading();
         //
         // DriveBase operation.
         //

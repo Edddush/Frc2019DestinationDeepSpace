@@ -31,6 +31,8 @@ import frclib.FrcCANSparkMax;
 import frclib.FrcJoystick;
 import frclib.FrcRobotBase;
 import trclib.TrcMecanumDriveBase;
+import trclib.TrcPidController;
+import trclib.TrcPidDrive;
 import trclib.TrcRobot.RunMode;
 
 /**
@@ -68,6 +70,9 @@ public class Robot extends FrcRobotBase
     public FrcCANSparkMax rightFrontWheel = null;
     public FrcCANSparkMax rightRearWheel = null;
     public TrcMecanumDriveBase driveBase = null;
+
+    private TrcPidController encoderXPidCtrl, encoderYPidCtrl, gyroTurnPidCtrl;
+    private TrcPidDrive pidDrive;
 
     /**
      * Constructor.
@@ -130,6 +135,34 @@ public class Robot extends FrcRobotBase
             driveBase = new TrcMecanumDriveBase(leftFrontWheel, leftRearWheel, rightFrontWheel, rightRearWheel, gyro);
             driveBase.setPositionScales(0.001, 0.001, 0.01);
             driveBase.setOdometryEnabled(true);
+
+            encoderXPidCtrl = new TrcPidController(
+                "encoderXPidCtrl",
+                new TrcPidController.PidCoefficients(
+                    RobotInfo.ENCODER_X_KP, RobotInfo.ENCODER_X_KI, RobotInfo.ENCODER_X_KD, RobotInfo.ENCODER_X_KF),
+                RobotInfo.ENCODER_X_TOLERANCE,
+                driveBase::getXPosition);
+            encoderYPidCtrl = new TrcPidController(
+                "encoderYPidCtrl",
+                new TrcPidController.PidCoefficients(
+                    RobotInfo.ENCODER_Y_KP, RobotInfo.ENCODER_Y_KI, RobotInfo.ENCODER_Y_KD, RobotInfo.ENCODER_Y_KF),
+                RobotInfo.ENCODER_Y_TOLERANCE,
+                driveBase::getYPosition);
+            gyroTurnPidCtrl = new TrcPidController(
+                "gyroTurnPidCtrl",
+                new TrcPidController.PidCoefficients(
+                    RobotInfo.GYRO_TURN_KP, RobotInfo.GYRO_TURN_KI, RobotInfo.GYRO_TURN_KD, RobotInfo.GYRO_TURN_KF),
+                RobotInfo.GYRO_TURN_TOLERANCE,
+                driveBase::getHeading);
+            gyroTurnPidCtrl.setAbsoluteSetPoint(true);
+            pidDrive = new TrcPidDrive("pidDrive", driveBase, encoderXPidCtrl, encoderYPidCtrl, gyroTurnPidCtrl);
+            pidDrive.setStallTimeout(RobotInfo.DRIVE_STALL_TIMEOUT);
+            pidDrive.setMsgTracer(globalTracer);
+
+            encoderXPidCtrl.setOutputLimit(RobotInfo.DRIVE_MAX_XPID_POWER);
+            encoderYPidCtrl.setOutputLimit(RobotInfo.DRIVE_MAX_YPID_POWER);
+            gyroTurnPidCtrl.setOutputLimit(RobotInfo.DRIVE_MAX_TURNPID_POWER);
+
         }
         //
         // Create Robot Modes.
