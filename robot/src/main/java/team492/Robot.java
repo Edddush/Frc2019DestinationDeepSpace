@@ -41,7 +41,7 @@ import trclib.TrcRobot.RunMode;
 public class Robot extends FrcRobotBase
 {
     public static final String programName = "DestinationDeepSpace";
-    public static final boolean USE_RAW = true;
+    public static final boolean USE_RAW = false;
 
     //
     // Inputs.
@@ -121,6 +121,7 @@ public class Robot extends FrcRobotBase
             // Initialize DriveBase subsystem.
             //
             driveBase = new TrcMecanumDriveBase(leftFrontWheel, leftRearWheel, rightFrontWheel, rightRearWheel);
+            driveBase.setOdometryEnabled(true);
         }
         //
         // Create Robot Modes.

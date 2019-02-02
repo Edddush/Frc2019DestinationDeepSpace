@@ -35,7 +35,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
 
     protected Robot robot;
 
-    private DriveMode driveMode = DriveMode.MECANUM_MODE;
+    private DriveMode driveMode = DriveMode.TANK_MODE;
 
     public FrcTeleOp(Robot robot)
     {
